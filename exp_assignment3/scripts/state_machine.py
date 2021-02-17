@@ -153,15 +153,15 @@ def callback_camera(ros_data):
      GreenLower = (50, 50, 20)   # range to detect green ball 
      GreenUpper = (70, 255, 255) 
      BlackLower = (0, 0, 0)      # black ball 
-	 BlackUpper = (5,50,50)
+     BlackUpper = (5, 50, 50)
      RedLower = (0, 50, 50)      # red ball 
-	 RedUpper = (5, 255, 255)
+     RedUpper = (5, 255, 255)
      YellowLower = (25, 50, 50)  # yellow ball 
-	 YellowUpper = (35, 255, 255)
+     YellowUpper = (35, 255, 255)
      BlueLower = (100, 50, 50)   # blue ball 
-	 BlueUpper = (130, 255, 255)
-	 MagentaLower = (125, 50, 50) # magenta ball 
-	 MagentaUpper = (150, 255, 255)
+     BlueUpper = (130, 255, 255)
+     MagentaLower = (125, 50, 50) # magenta ball 
+     MagentaUpper = (150, 255, 255)
 
      
      blurred = cv2.GaussianBlur(image_np, (11, 11), 0)  # apply a Gaussian filter
@@ -251,8 +251,8 @@ def callback_camera(ros_data):
                            (0, 255, 255), 2)
          cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('GREEN BALL IS DETECTED') 
-
-         if (see_ball_green == True and reach_green_ball = False ):   # se non ha ancora raggiunto la ball
+         # se non ha ancora raggiunto la ball
+         if (see_ball_green == True and reach_green_ball == False ):   
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
                  rospy.loginfo('ENTER IN THE SUB-STATE TRACK')
                  reach_green_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
@@ -261,7 +261,7 @@ def callback_camera(ros_data):
 
          # Track_ball(radius,x,y,image_np,center)      # TRACK FUNCTION (la prima volta fa il track)   
 
-    elif (cnts_black) > 0:   
+     elif (cnts_black) > 0:   
 
          see_ball_black = True  # the robot can see the BLACK ball 
          c = max(cnts_black, key=cv2.contourArea)  
@@ -274,14 +274,14 @@ def callback_camera(ros_data):
          cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('BLACK BALL IS DETECTED')
 
-         if (see_ball_black == True and reach_black_ball = False ):   # se non ha ancora raggiunto la ball
+         if (see_ball_black == True and reach_black_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
                  rospy.loginfo('ENTER IN THE SUB-STATE TRACK')
                  reach_black_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('BLACK BALL ALREADY REACHED')
 
-    elif (cnts_red) > 0:   
+     elif (cnts_red) > 0:   
 
          see_ball_red = True  # the robot can see the BLACK ball 
          c = max(cnts_red, key=cv2.contourArea)  
@@ -294,14 +294,14 @@ def callback_camera(ros_data):
          cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('RED BALL IS DETECTED')
 
-         if (see_ball_red == True and reach_red_ball = False ):   # se non ha ancora raggiunto la ball
+         if (see_ball_red == True and reach_red_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
                  rospy.loginfo('ENTER IN THE SUB-STATE TRACK')
                  reach_red_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('RED BALL ALREADY REACHED')
 
-    elif (cnts_yellow) > 0:   
+     elif (cnts_yellow) > 0:   
 
          see_ball_yellow = True  # the robot can see the BLACK ball 
          c = max(cnts_yellow, key=cv2.contourArea)  
@@ -314,14 +314,14 @@ def callback_camera(ros_data):
          cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('YELLOW BALL IS DETECTED')
 
-         if (see_ball_yellow== True and reach_yellow_ball = False ):   # se non ha ancora raggiunto la ball
+         if (see_ball_yellow== True and reach_yellow_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
                  rospy.loginfo('ENTER IN THE SUB-STATE TRACK')
                  reach_yellow_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('YELLOW BALL ALREADY REACHED')
 
-    elif (cnts_blue) > 0:   
+     elif (cnts_blue) > 0:   
 
          see_ball_blue = True  # the robot can see the BLACK ball 
          c = max(cnts_blue, key=cv2.contourArea)  
@@ -334,14 +334,14 @@ def callback_camera(ros_data):
          cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('BLUE BALL IS DETECTED')
 
-         if (see_ball_blue == True and reach_blue_ball = False ):   # se non ha ancora raggiunto la ball
+         if (see_ball_blue == True and reach_blue_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
                  rospy.loginfo('ENTER IN THE SUB-STATE TRACK')
                  reach_blue_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('BLUE BALL ALREADY REACHED')
 
-    elif (cnts_magenta) > 0:   
+     elif (cnts_magenta) > 0:   
 
          see_ball_magenta = True  # the robot can see the BLACK ball 
          c = max(cnts_magenta, key=cv2.contourArea)  
@@ -354,7 +354,7 @@ def callback_camera(ros_data):
          cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('MAGENTA BALL IS DETECTED')
 
-         if (see_ball_magenta == True and reach_magenta_ball = False):   # se non ha ancora raggiunto la ball
+         if (see_ball_magenta == True and reach_magenta_ball == False):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
                  rospy.loginfo('ENTER IN THE SUB-STATE TRACK')
                  reach_magenta_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
@@ -362,8 +362,8 @@ def callback_camera(ros_data):
              rospy.loginfo('MAGENTA BALL ALREADY REACHED')
        
 
- cv2.imshow('window', image_np)
- cv2.waitKey(2)
+     cv2.imshow('window', image_np)
+     cv2.waitKey(2)
 
 # SLEEP STATE -STATE MACHINE 
 
@@ -379,12 +379,12 @@ class Sleep(smach.State):
 
     def execute(self,userdata):
         
-        rospy.loginfo('Executing state SLEEP')
+        #rospy.loginfo('Executing state SLEEP')
         # userdata.sleep_counter_out = userdata.sleep_counter_in + 1  
         
-        result = Go_home()
-        if result:
-             rospy.loginfo('robot arrived at home')
+        #result = Go_home()
+        #if result:
+             #rospy.loginfo('robot arrived at home')
              time.sleep(10)    # it stays for some time  
         
               
@@ -416,13 +416,13 @@ class Normal(smach.State):
              # Subscribe to camera topic and execute the callbacl_camera function
              subscribe_camera = rospy.Subscriber("robot/camera1/image_raw/compressed",
                                                 CompressedImage, callback_camera,  queue_size=1)
-             time.sleep(5)   
+              
 
                  # creo variabile
                  # ball_colour = "green" - LABEL 
                  # faccio un publish ad al nodo "track_ball" 
-         time.sleep(50)
-         break
+             time.sleep(50)
+             break
 
                  # Track-sub state, chiamo una funzione di TRACKING a cui passo come argomento la variabile TRUE
                  # poi vedo se questa è TRUE, faccio il tracking della palla del colore selezionato. 
