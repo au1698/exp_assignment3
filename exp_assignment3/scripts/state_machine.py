@@ -23,7 +23,7 @@ import smach
 import smach_ros
 import actionlib
 
-import exp_assignment2.msg
+import exp_assignment3.msg
 
 # Ros Messages
 from sensor_msgs.msg import CompressedImage
@@ -38,7 +38,7 @@ from gazebo_msgs.msg import LinkState
 from tf import transformations
 from std_msgs.msg import String, Float64 
 
-from exp_assignment2.msg import PlanningAction, PlanningGoal
+from exp_assignment3.msg import PlanningAction, PlanningGoal
 
 # Imports file .action ed and messages used by move base action 
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
@@ -47,9 +47,17 @@ global see_ball_green, see_ball_red, see_ball_black, see_ball_yellow, see_ball_b
 
 global reach_green_ball, reach_red_ball, reach_black_ball, reach_yellow_ball, reach_blue_ball, reach_magenta_ball
 
+reach_green_ball = False
+reach_black_ball = False
+reach_red_ball = False
+reach_yellow_ball = False
+reach_blue_ball = False
+reach_magenta_ball = False
+
+VERBOSE = False 
 # FUNCTIONS 
 
-#  Move-Base client that lets the robot go home
+#  Move-Base client that lets the robot go home avoiding obstacles
 def Go_home():
 
      # Crea un action client chiamato "move_base" con action definition file "MoveBaseAction"
@@ -100,6 +108,9 @@ def Move_normal():
      # Sends the goal to the action server.
      client.send_goal(goal)
 
+     # guarda in giro se ci sono palle
+     # subscribe_camera = rospy.Subscriber("robot/camera1/image_raw/compressed", CompressedImage, callback_camera,  queue_size=1)
+
      # Waits for the server to finish performing the action.
      wait = client.wait_for_result() 
      
@@ -135,7 +146,7 @@ def Track_ball(radius,x,y,image_np,center):
 
 # THIS FUNCTION DETECTS ALL THE BALLS
 def callback_camera(ros_data):
-     
+     #rospy.logerr("CALLBACK CAMERA IS EXECUTED")
      #global see_ball           # GLOBAL VARIABLE, IS SET TO TRUE WHEN A BALL IS DETECTED 
     
      '''Callback function of subscribed topic. 
@@ -145,7 +156,13 @@ def callback_camera(ros_data):
 
      #### direct conversion to CV2 ####
      np_arr = np.fromstring(ros_data.data, np.uint8)
-     image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)  # OpenCV >= 3.0:
+     image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) # OpenCV >= 3.0:
+
+     
+
+     if len(image_np) == 0:
+         rospy.loginfo('sono qui')
+         print('the array is empty')
      
      # mettere colori delle altre palle 
 
@@ -170,34 +187,34 @@ def callback_camera(ros_data):
      # Create a mask for each colour 
 
      # Mask for green ball 
-     mask_green = cv2.inRange(hsv, GreenLower, GreeenUpper)
-     mask_green = cv2.erode(mask, None, iterations=2)
-     mask_green = cv2.dilate(mask, None, iterations=2)
+     mask_green = cv2.inRange(hsv, GreenLower, GreenUpper)
+     mask_green = cv2.erode(mask_green, None, iterations=2)
+     mask_green = cv2.dilate(mask_green, None, iterations=2)
 
       # Mask for Black ball 
      mask_black = cv2.inRange(hsv, BlackLower, BlackUpper)
-     mask_black = cv2.erode(mask, None, iterations=2)
-     mask_black = cv2.dilate(mask, None, iterations=2)
+     mask_black = cv2.erode(mask_black, None, iterations=2)
+     mask_black = cv2.dilate(mask_black, None, iterations=2)
 
      # Mask for Red ball 
      mask_red = cv2.inRange(hsv, RedLower, RedUpper)
-     mask_red = cv2.erode(mask, None, iterations=2)
-     mask_red = cv2.dilate(mask, None, iterations=2)
+     mask_red = cv2.erode(mask_red, None, iterations=2)
+     mask_red = cv2.dilate(mask_red, None, iterations=2)
 
      # Mask for Yellow ball 
      mask_yellow = cv2.inRange(hsv, YellowLower, YellowUpper)
-     mask_yellow = cv2.erode(mask, None, iterations=2)
-     mask_yellow = cv2.dilate(mask, None, iterations=2)
+     mask_yellow = cv2.erode(mask_yellow, None, iterations=2)
+     mask_yellow = cv2.dilate(mask_yellow, None, iterations=2)
 
      # Mask for Blue ball 
      mask_blue = cv2.inRange(hsv, BlueLower, BlueUpper)
-     mask_blue = cv2.erode(mask, None, iterations=2)
-     mask_blue = cv2.dilate(mask, None, iterations=2)
+     mask_blue = cv2.erode(mask_blue, None, iterations=2)
+     mask_blue = cv2.dilate(mask_blue, None, iterations=2)
 
      # Mask for Magenta ball 
      mask_magenta = cv2.inRange(hsv, MagentaLower, MagentaUpper)
-     mask_magenta = cv2.erode(mask, None, iterations=2)
-     mask_magenta = cv2.dilate(mask, None, iterations=2)
+     mask_magenta = cv2.erode(mask_magenta, None, iterations=2)
+     mask_magenta = cv2.dilate(mask_magenta, None, iterations=2)
     
      # Find the contours of each ball 
 
@@ -226,8 +243,13 @@ def callback_camera(ros_data):
                                 cv2.CHAIN_APPROX_SIMPLE)                    # Contour magenta ball 
      cnts_magenta = imutils.grab_contours(cnts_magenta) 
 
-
+     radius = 0
+     #c = 0
      center = None
+
+     global reach_green_ball, reach_red_ball, reach_black_ball, reach_yellow_ball, reach_blue_ball, reach_magenta_ball
+
+
      # only proceed if at least one contour was found 
      #  
      if len(cnts_green) > 0:  # if the green ball is detected 
@@ -236,7 +258,8 @@ def callback_camera(ros_data):
 
          # find the largest contour in the mask, then use
          # it to compute the minimum enclosing circle and
-         # centroid
+         # centroid 
+         rospy.logerr("the image is acquired")
          c = max(cnts_green, key=cv2.contourArea)  
          ((x, y), radius) = cv2.minEnclosingCircle(c)
          M = cv2.moments(c)
@@ -247,9 +270,9 @@ def callback_camera(ros_data):
 
              # draw the circle and centroid on the frame,
              # then update the list of tracked points
-         cv2.circle(image_np, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-         cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
+         #cv2.circle(image_np, (int(x), int(y)), int(radius),
+                           #(0, 255, 255), 2)
+         #cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('GREEN BALL IS DETECTED') 
          # se non ha ancora raggiunto la ball
          if (see_ball_green == True and reach_green_ball == False ):   
@@ -261,7 +284,7 @@ def callback_camera(ros_data):
 
          # Track_ball(radius,x,y,image_np,center)      # TRACK FUNCTION (la prima volta fa il track)   
 
-     elif (cnts_black) > 0:   
+     elif len (cnts_black) > 0:   
 
          see_ball_black = True  # the robot can see the BLACK ball 
          c = max(cnts_black, key=cv2.contourArea)  
@@ -269,9 +292,9 @@ def callback_camera(ros_data):
          M = cv2.moments(c)
          center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-         cv2.circle(image_np, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-         cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
+         #cv2.circle(image_np, (int(x), int(y)), int(radius),
+                           #(0, 255, 255), 2)
+         #cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('BLACK BALL IS DETECTED')
 
          if (see_ball_black == True and reach_black_ball == False ):   # se non ha ancora raggiunto la ball
@@ -281,7 +304,7 @@ def callback_camera(ros_data):
          else: 
              rospy.loginfo('BLACK BALL ALREADY REACHED')
 
-     elif (cnts_red) > 0:   
+     elif len(cnts_red) > 0:   
 
          see_ball_red = True  # the robot can see the BLACK ball 
          c = max(cnts_red, key=cv2.contourArea)  
@@ -289,9 +312,9 @@ def callback_camera(ros_data):
          M = cv2.moments(c)
          center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-         cv2.circle(image_np, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-         cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
+         #cv2.circle(image_np, (int(x), int(y)), int(radius),
+                          # (0, 255, 255), 2)
+         #cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('RED BALL IS DETECTED')
 
          if (see_ball_red == True and reach_red_ball == False ):   # se non ha ancora raggiunto la ball
@@ -301,7 +324,7 @@ def callback_camera(ros_data):
          else: 
              rospy.loginfo('RED BALL ALREADY REACHED')
 
-     elif (cnts_yellow) > 0:   
+     elif len(cnts_yellow) > 0:   
 
          see_ball_yellow = True  # the robot can see the BLACK ball 
          c = max(cnts_yellow, key=cv2.contourArea)  
@@ -309,9 +332,9 @@ def callback_camera(ros_data):
          M = cv2.moments(c)
          center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-         cv2.circle(image_np, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-         cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
+         #cv2.circle(image_np, (int(x), int(y)), int(radius),
+                           #(0, 255, 255), 2)
+         #cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('YELLOW BALL IS DETECTED')
 
          if (see_ball_yellow== True and reach_yellow_ball == False ):   # se non ha ancora raggiunto la ball
@@ -321,7 +344,7 @@ def callback_camera(ros_data):
          else: 
              rospy.loginfo('YELLOW BALL ALREADY REACHED')
 
-     elif (cnts_blue) > 0:   
+     elif len(cnts_blue) > 0:   
 
          see_ball_blue = True  # the robot can see the BLACK ball 
          c = max(cnts_blue, key=cv2.contourArea)  
@@ -329,10 +352,10 @@ def callback_camera(ros_data):
          M = cv2.moments(c)
          center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-         cv2.circle(image_np, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-         cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
-         rospy.loginfo('BLUE BALL IS DETECTED')
+         #cv2.circle(image_np, (int(x), int(y)), int(radius),
+                           #(0, 255, 255), 2)
+         #cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
+         rospy.loginfo('BLUE BALL IS DETECTED')   # MI HA VISTO LA BLUE BALL OK!!! 
 
          if (see_ball_blue == True and reach_blue_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
@@ -341,7 +364,7 @@ def callback_camera(ros_data):
          else: 
              rospy.loginfo('BLUE BALL ALREADY REACHED')
 
-     elif (cnts_magenta) > 0:   
+     elif len(cnts_magenta) > 0:   
 
          see_ball_magenta = True  # the robot can see the BLACK ball 
          c = max(cnts_magenta, key=cv2.contourArea)  
@@ -349,9 +372,9 @@ def callback_camera(ros_data):
          M = cv2.moments(c)
          center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
 
-         cv2.circle(image_np, (int(x), int(y)), int(radius),
-                           (0, 255, 255), 2)
-         cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
+         #cv2.circle(image_np, (int(x), int(y)), int(radius),
+                           #(0, 255, 255), 2)
+         #cv2.circle(image_np, center, 5, (0, 0, 255), -1) 
          rospy.loginfo('MAGENTA BALL IS DETECTED')
 
          if (see_ball_magenta == True and reach_magenta_ball == False):   # se non ha ancora raggiunto la ball
@@ -411,18 +434,18 @@ class Normal(smach.State):
 
         # FARE CICLO WHILE 
         while True: 
-             Move_normal()  #  the robot moves randomly
-             rospy.loginfo('The robot moves randomly')
+            subscribe_camera = rospy.Subscriber("/camera1/image_raw/compressed",CompressedImage, callback_camera,  queue_size=1)
+            Move_normal()  #  the robot moves randomly
+            rospy.loginfo('The robot moves randomly')
              # Subscribe to camera topic and execute the callbacl_camera function
-             subscribe_camera = rospy.Subscriber("robot/camera1/image_raw/compressed",
-                                                CompressedImage, callback_camera,  queue_size=1)
+
               
 
                  # creo variabile
                  # ball_colour = "green" - LABEL 
                  # faccio un publish ad al nodo "track_ball" 
-             time.sleep(50)
-             break
+            time.sleep(50)
+            break
 
                  # Track-sub state, chiamo una funzione di TRACKING a cui passo come argomento la variabile TRUE
                  # poi vedo se questa è TRUE, faccio il tracking della palla del colore selezionato. 
