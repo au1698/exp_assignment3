@@ -89,7 +89,10 @@ def Go_home():
         return client.get_result()   
 
 #  Move-Base client that lets the robot move normal 
-def Move_normal():
+def Move_normal(target_x,target_y):
+
+    #target_x = np.random.randint(1, 8)
+    #target_y = np.random.randint(1, 8)
      
     # Crea un action client chiamato "move_base" con action definition file "MoveBaseAction"
      client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
@@ -101,8 +104,8 @@ def Move_normal():
      goal.target_pose.header.frame_id = "map"
      goal.target_pose.header.stamp = rospy.Time.now()
 
-     goal.target_pose.pose.position.x = np.random.randint(1, 8)
-     goal.target_pose.pose.position.y = np.random.randint(1, 8)
+     goal.target_pose.pose.position.x = target_x
+     goal.target_pose.pose.position.y = terget_y
      goal.target_pose.pose.orientation.w = 1.0
 
      # Sends the goal to the action server.
@@ -136,10 +139,10 @@ def Track_ball(radius,x,y,image_np,center):
                            (0, 255, 255), 2)
          cv2.circle(image_np, center, 5, (0, 0, 255), -1)  
          vel = Twist()   # create object velocity of type "TWIST"
-         vel.angular.z = 0.002*(center[0]-400)  # set the angular velocity
-         vel.linear.x = 0.01*(radius-100)      # set the linear velocity
+         vel.angular.z = -0.002*(center[0]-400)  # set the angular velocity
+         vel.linear.x = -0.01*(radius-100)      # set the linear velocity
          # publish the velocity on the topic /cmd
-         vel_pub.publish(vel) 
+         vel_pub.publish(vel)  # DOVREI FARE UN ELSE E FARE IL SUBSCRIBE ALL'ODOMETRY E SETTARE A TRUE LA VAR REACH BALL
      return               
 
 # CALLBACK- FUNCTIONS 
@@ -155,10 +158,6 @@ def callback_camera(ros_data):
      #### direct conversion to CV2 ####
      np_arr = np.fromstring(ros_data.data, np.uint8)
      image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) # OpenCV >= 3.0:
-
-     if len(image_np) == 0:
-         rospy.loginfo('sono qui')
-         print('the array is empty')
 
      # Colours of the balls 
      GreenLower = (50, 50, 20)   # range to detect green ball 
@@ -259,8 +258,8 @@ def callback_camera(ros_data):
          # se non ha ancora raggiunto la ball
          if (see_ball_green == True and reach_green_ball == False ):   
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
-                 reach_green_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
-                 sub_odom = rospy.Subscriber('odom', Odometry, callback_odom) # subscribe to the odometry topic
+                 #reach_green_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
+                 #sub_odom = rospy.Subscriber('odom', Odometry, callback_odom) # subscribe to the odometry topic
          else: 
              rospy.loginfo('GREEN BALL ALREADY REACHED')
 
@@ -276,7 +275,7 @@ def callback_camera(ros_data):
 
          if (see_ball_black == True and reach_black_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
-                 reach_black_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
+                 #reach_black_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('BLACK BALL ALREADY REACHED')
 
@@ -292,7 +291,7 @@ def callback_camera(ros_data):
 
          if (see_ball_red == True and reach_red_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
-                 reach_red_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
+                 #reach_red_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('RED BALL ALREADY REACHED')
 
@@ -307,7 +306,7 @@ def callback_camera(ros_data):
 
          if (see_ball_yellow== True and reach_yellow_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
-                 reach_yellow_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
+                 #reach_yellow_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('YELLOW BALL ALREADY REACHED')
 
@@ -322,7 +321,7 @@ def callback_camera(ros_data):
 
          if (see_ball_blue == True and reach_blue_ball == False ):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
-                 reach_blue_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
+                 #reach_blue_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('BLUE BALL ALREADY REACHED')
 
@@ -338,7 +337,7 @@ def callback_camera(ros_data):
 
          if (see_ball_magenta == True and reach_magenta_ball == False):   # se non ha ancora raggiunto la ball
                  Track_ball(radius,x,y,image_np,center)  # fa il track della palla
-                 reach_magenta_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
+                 #reach_magenta_ball = True  #  QUESTA VARIABILE è TRUE SOLO QUANDO HO GIà RAGGIUNTO LA PALLA
          else: 
              rospy.loginfo('MAGENTA BALL ALREADY REACHED')
        
@@ -346,15 +345,14 @@ def callback_camera(ros_data):
      cv2.imshow('window', image_np)
      cv2.waitKey(2)
 
-"""
 # THIS FUNCTION IS CALLED WHEN THE ROBOT SUBSCRIBE TO THE ODOMETRY TOPIC
-def callback_odom(data):
-     robot_position_x = pose = odom_data.pose.pose.position.x  # I HAVE ADDED THAT, ROBOT POSITION 
-     robot_position_y = pose = odom_data.pose.pose.position.y  # I HAVE ADDED THAT, ROBOT POSITION 
-     rospy.set_param('/robot_position', [robot_position_x, robot_position_y]) # SET A ROS PARAMETER
+#def callback_odom(data):
+     #robot_position_x = pose = odom_data.pose.pose.position.x  # I HAVE ADDED THAT, ROBOT POSITION 
+     #robot_position_y = pose = odom_data.pose.pose.position.y  # I HAVE ADDED THAT, ROBOT POSITION 
+     #rospy.set_param('/robot_position', [robot_position_x, robot_position_y]) # SET A ROS PARAMETER
 """     
 def callback_location(data)
-     print("robot position ia arrived as msg to the robot")
+     print("robot position ia arrived as msg to the robot") """
 
 
 # SLEEP STATE -STATE MACHINE 
@@ -399,11 +397,13 @@ class Normal(smach.State):
 
         # FARE CICLO WHILE 
         #while True: 
-            #subscribe_camera = rospy.Subscriber("/camera1/image_raw/compressed",CompressedImage, callback_camera,  queue_size=1)
-            #Move_normal()  #  the robot moves randomly
-            #rospy.loginfo('The robot moves randomly')
+        #subscribe_camera = rospy.Subscriber("/camera1/image_raw/compressed",CompressedImage, callback_camera,  queue_size=1)
+        x = np.random.randint(1, 8)
+        y = np.random.randint(1, 8)
+        #Move_normal(x,y)  #  the robot moves randomly
+        rospy.loginfo('The robot moves randomly')
              # Subscribe to camera topic and execute the callbacl_camera function
-            #time.sleep(20)
+        time.sleep(20)
             #break 
         user_command = rospy.get_param('/user_command')   # FACCIO IL CHECK PER VEDERE SE L'USER HA DETTO DI GIOCARE
         if (user_command == 'play'):
@@ -427,14 +427,14 @@ class Play(smach.State):
         rospy.loginfo('Executing state PLAY')
         user_command = rospy.get_param('/user_command')
         if (user_command == 'play'): 
-            # MoveNormal(robot_initial_position)
+            Move_normal(-5,8)
             #if (result):
                # set param to the human 
-               rospy.set_param('/human_say_location', 'True') # SETTO IL PARAMETRO SAY LOCATION
-               sub_location = rospy.Subscriber("/location",Int64MultiArray, callback_location,  queue_size=1)
+               #rospy.set_param('/human_say_location', 'True') # SETTO IL PARAMETRO SAY LOCATION
+               #sub_location = rospy.Subscriber("/location",Int64MultiArray, callback_location,  queue_size=1)
                # MoveNormal(sub_location) 
         # To track the data  
-        time.sleep(5)
+            time.sleep(5)
         
     ## Change state randomly: from 'PLAY' to 'NORMAL' 
         return random.choice([ 'go_to_normal','go_to_sleep'])
@@ -472,8 +472,10 @@ def main():
                                remapping={'play_counter_in':'sm_counter',
                                           'play_counter_out':'sm_counter'})
                                 
+    """ QUANDO ENTRA NELLLO STATO FIND, THE ROBOT ENTERS IN THE SUB STATE TRACK,SCRIVERE IL SUBSCRIBE ALLA CAMERA
+        E RITORNA ALLA STATO PLAY. FARE UN COMPARING CON LA PREVIOUS POSITION.
 
-
+    """
 
     ## Create and start the introspection server for visualization
     sis = smach_ros.IntrospectionServer('server_name', sm, '/SM_ROOT')

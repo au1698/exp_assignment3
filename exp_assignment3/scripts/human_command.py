@@ -5,9 +5,9 @@ import numpy as np
 import roslib
 import rospy
 import actionlib
-import Int64MultiArray
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist, Point, Pose, PoseStamped
+from std_msgs.msg import Int64MultiArray
 from nav_msgs.msg import Odometry
 from gazebo_msgs.msg import LinkState
 from tf import transformations
@@ -28,8 +28,9 @@ def  Human_command ():
        while True:
 
             # User random choice 
-             time.sleep(100) # ASPETTA 1000 SEC???  ADESSO L'HO ABBASSATO A 100 
+             time.sleep(30) # ASPETTA 1000 SEC???  ADESSO L'HO ABBASSATO A 100 
              user_choice = "play"
+             print("play")
              #user_choice = random.choice(['play'])
              #robot_position = rospy.get_param('/robot_position') 
              rospy.set_param('/user_command', 'play') # SETTO IL PARAMETRO PLAY 
@@ -37,29 +38,33 @@ def  Human_command ():
              #pub_command = rospy.Publisher('/user_command', String, queue_size=10) # A STO PUNTO FACCIO QUESTO PUBLISH
              #pub_command.(user_choice) # publish on the topic user's choice 
              time.sleep(50) # aspetta 30 sec
-             pub_location = rospy.Publisher('/location', Int64Multiarray, queue_size=10) # define publisher
+             #pub_location = rospy.Publisher('/location', Int64Multiarray, queue_size=10) # define publisher HO CANCELLATO QUESTO
              # select randomly the locations
              #say_location = rospy.get_param('/human_say_location') 
-             if (say_location == True):
-                   location_choice = random.choice(['kitchen','bathroom','closet','bedroom','living_room','entrance']) 
+
+             #if (say_location == True): HO CANCELLATO ANCHE QUESTO
+                   #location_choice = random.choice(['kitchen','bathroom','closet','bedroom','living_room','entrance']) 
 
 
 
              # NELLA STATE MACHINE, OGNI VOLTA CHE SALVO LA POSIZIONE DELLA PALLA, METTO UNA BOOLEANA A TRUE 
              # -> MI DICE CHE LA POSIZIONE è STATA SALVATA (QUESTO DA FARE NALLA STATE MACHINE) E UN'ALTRO ROSPARAM 
              # CHE MI SALVA LA POSIZIONE DELLA PALLA (NUMERO)
-             # GROUNDING
-             if (location_choice == 'kitchen'): # SE L'USER HA DETTO KITCHEN
+
+
+
+             # GROUNDING HO CANCELLATO TUTTO IL GROUNDING 
+             #if (location_choice == 'kitchen'): # SE L'USER HA DETTO KITCHEN
                    # PRENDI IL VALORE DAL ROSPARAM
-                   robot_position = rospy.get_param('/position_kitchen')   # ricorda di settare tutti i rosparam a 0 nel launch file 
-                   if (robot_position != 0) # CHEK SE LA LOCATION è CONOSCIUTA 
-                         pub_location(robot_position)  # PUBBLICALO SU UN TOPIC /COORDINATE_LOCATION
+                   #robot_position = rospy.get_param('/position_kitchen')   # ricorda di settare tutti i rosparam a 0 nel launch file 
+                   #if (robot_position != 0) # CHEK SE LA LOCATION è CONOSCIUTA 
+                         #pub_location(robot_position)  # PUBBLICALO SU UN TOPIC /COORDINATE_LOCATION
                    # COSì LO STATO PLAY CHIAMA LA FUNZIONE CHE GLI FA RAGGIUNGERE IL TARGET
 
-             else: 
+             #else: 
 
       
-             robot_position = rospy.get_param('/robot_position') 
+             #robot_position = rospy.get_param('/robot_position') 
 
 def main(): 
       # Inizialize the node   
