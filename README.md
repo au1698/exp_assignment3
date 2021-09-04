@@ -14,6 +14,6 @@
 ## Possible Improvements 
 
 ## Author 
-
+* Aurora Bertino: bertino.aurora16@gmail.com
 
 
