@@ -25,13 +25,22 @@ SUBSTATE-TRACK: This substate is represented by a function Track_ball(). When th
 PLAY: The robot goes to person's position x=-5, y=8, when it's arrived to the person publishes on the topic /human_command the message "arrived" to the human command node. In this way, the person knows it has arrived and can tell it to reach a location. Therefore, if the received command is a room and the the global variable "reach_ball" is TRUE meand that the robot has stored position informations. So, it takes from the list the x and y coordinates and calls the function MovePlay() to let the robot move towards he target. 
 it waits for an human command and if the location is known, it goes to the room otherwise it switches...
 
-FIND: The robot explores the environment in order to find the coloured ball. 
+FIND: The robot explores the environment in order to find the coloured ball using the explore_lite package. This part is to be implemented. 
 
 ## Ros Messages 
 
 ## How to run the code 
 
-roslaunch exp_assignment3 simulation.launch 
+The first thing to do, after having cloned the repository in the Ros workspace, is to build the package in your workspace with
+    ```
+    catkin_make
+    ```
+To run the system:
+    
+    ```
+    roslaunch exp_assignment3 simulation.launch 
+
+    ```
 
 ## Working hypoteses 
 The ROS packages used in this project are the following:
@@ -41,6 +50,8 @@ The ROS packages used in this project are the following:
 - move_base as planner that let the robot reach the goal position with obstacle avoidance 
 
 ## Possible Improvements 
+- Improve code syntax 
+- Implement FIND state
 
 ## Author 
 * Aurora Bertino: bertino.aurora16@gmail.com
