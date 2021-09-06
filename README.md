@@ -6,7 +6,9 @@ The robot simulates a dog that moves on two wheels with differential drive contr
 
 p align="center"> 
 <img src=https://github.com/au1698/exp_assignment3/blob/main/exp_assignment3/Images/Screenshot%20(24).png raw=true">
-</p>
+</p> 
+                                                                                                                   
+![Screenshot](Screenshot%20(24).png )                                                                                                                   
 
 
 ## Ros Architecture of the System 
