@@ -195,7 +195,7 @@
   </link>
 
 
-  <joint name="head_joint" type="revolute">
+  <joint name="head_joint" type="fixed">
   	<axis xyz="0 0 1"/>
   	<limit effort="1000.0" lower="-3.14" upper="3.14" velocity="0.2"/> 
   	<origin rpy="0 0 0" xyz="0 0 0.05"/>
@@ -249,17 +249,6 @@
 	 </joint>
 
 
-
-  <transmission name="head_joint_trans">
-	<type>transmission_interface/SimpleTransmission</type>
-	<joint name="head_joint">
-		<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-	</joint>
-	<actuator name="motor1">
-		<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-		<mechanicalInterface>1</mechanicalInterface>
-	</actuator>
-</transmission>
 
 
 

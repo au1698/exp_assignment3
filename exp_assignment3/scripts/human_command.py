@@ -24,79 +24,55 @@ from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 # Human_command node
 
+"""This node simulates human commands: PLAY or GO TO "LOCATION" 
+   where location could be: kitchen, bathroom, closet, bedroom, living_room, entrance. 
+
+   The command PLAY is published every 2 minutes (you can set this value) on the topic /human_command 
+
+   This node subscribes on the same topic /human_command and when the message is "arrived" means that the robot reached the person, and is ready to 
+   listent to the user's command GO TO "LOCATION".
+
+   At this point, in the PLAY state of the state machine, if the lcoation is known, the robot moves to the target avoiding obstacles otherwise
+   it enters in the FIND state. 
+
+"""
+
+
 
 def callback_robot(msg):
-    # TO GO TO COMMAND RANDOM CHOICE
+    data = msg.data
     if (msg.data == "arrived"):
+         rospy.loginfo("The robot is arrived to the human")
 
-        location_choice = random.choice(
-        ['kitchen', 'bathroom', 'closet', 'bedroom', 'living_room', 'entrance'])
-    # PUBLISH LOCATION TO THE ROBOT
-        pub_command(location_choice)
-
-
-def Human_command():
-
-    while True:
-
-        # User random choice
-        time.sleep(400)  # ASPETTA 1000 SEC???  ADESSO L'HO ABBASSATO A 100
-        user_choice = "play"
-        print("play")
-
-        # A STO PUNTO FACCIO QUESTO PUBLISH
-        pub_command = rospy.Publisher('/user_command', String, queue_size=10)
-        # publish on the topic user's choice
-        pub_command(user_choice)
-        #rospy.set_param('/user_command', 'no play ')
-        time.sleep(50)  # aspetta 30 sec
-
-        sub_robot = rospy.Subscriber(
-            "/arrived_human", String, callback_robot,  queue_size=1)
-
-        # if (say_location == True): HO CANCELLATO ANCHE QUESTO
-        #location_choice = random.choice(['kitchen','bathroom','closet','bedroom','living_room','entrance'])
-
-        # NELLA STATE MACHINE, OGNI VOLTA CHE SALVO LA POSIZIONE DELLA PALLA, METTO UNA BOOLEANA A TRUE
-        # -> MI DICE CHE LA POSIZIONE è STATA SALVATA (QUESTO DA FARE NALLA STATE MACHINE) E UN'ALTRO ROSPARAM
-        # CHE MI SALVA LA POSIZIONE DELLA PALLA (NUMERO)
-
-        # GROUNDING HO CANCELLATO TUTTO IL GROUNDING
-        # if (location_choice == 'kitchen'): # SE L'USER HA DETTO KITCHEN
-        # PRENDI IL VALORE DAL ROSPARAM
-        # robot_position = rospy.get_param('/position_kitchen')   # ricorda di settare tutti i rosparam a 0 nel launch file
-        # if (robot_position != 0) # CHEK SE LA LOCATION è CONOSCIUTA
-        # pub_location(robot_position)  # PUBBLICALO SU UN TOPIC /COORDINATE_LOCATION
-        # COSì LO STATO PLAY CHIAMA LA FUNZIONE CHE GLI FA RAGGIUNGERE IL TARGET
-
-        # else:
-
-
-def main():
-    # Inizialize the node
+def Human():
+    pub = rospy.Publisher('human_command', String, queue_size=10)
     rospy.init_node('human_command', anonymous=True)
+    human_command = String()
+    loc = String()
+    rate = rospy.Rate(10) 
+    while not rospy.is_shutdown(): 
 
-    while True:
+        # Set this time parameter to decide the frequency of the command PLAY 
+        time.sleep(120)   
+        human_command = "play"
+        rospy.loginfo(human_command)
+        time.sleep(60)
+        pub.publish(human_command)
+        rate.sleep()
 
-        Human_command()
-        time.sleep(20)  # wait some time
-
+        # Subscribe to the/human_command topic
+        time.sleep(2)
+        robot_say = rospy.Subscriber("/human_command", String, callback_robot,  queue_size=1)
+        if (robot_say == "arrived"):
+            loc = random.choice(['kitchen', 'bathroom', 'closet', 'bedroom', 'living_room', 'entrance'])
+            pub.publish(loc)
+            time.sleep(30)
+            
 
 if __name__ == '__main__':
-    main()
-
- # IN PRATICA QUESTO NODO è UN PUBLISHER
- # IF USER SAY "PLAY"
- # FACCIO IL PUBBLISH DI QUESTA STRINGA E LO LEGGO IN OGNI STATO (DELLA STATE MACHINE -> COSì VADO A PLAY)
- # OVUNQUE MI TROVO ENTRO IN PLAY E MANDO IL MOVENORMAL COL TARGET (DA INSERIRE) DELLA POS INIZIALE DEL ROBOT
- # WAIT FOR A GO TO + LOCATION COMMAND (PUBBLIO UN'ALTRA VOLTA SULLO STESSO TOPIC).
- # NELLO STATO PLAY: IF THE LOCATION IS KNOWN -> GO TO THE LOCATION -> MANDO IL MOVENORMAL COL TARGET DI
- # QUESTA LOCATION ALTRIMENTI PASSO NELLO STATO FIND.
+    try:
+        Human()
+    except rospy.ROSInterruptException:
+        pass
 
 
-# This node simulates human commands (like: GET TO + LOCATION)
-# qui faccio il ground ->  bedroom -> yelllow ball
-# QUI FACCIO:
-# if "see_ball_yellow" == TRUE (cioè, se il robot conosce già la location -> estrai le coordinate di yellow e pubblicale)
-# in modo tale che il PLAY possa fare da subscriber (ricevendo la location di destinazione) e possa andare al target
-# chiamando la funzione MOVE TO TARGET.

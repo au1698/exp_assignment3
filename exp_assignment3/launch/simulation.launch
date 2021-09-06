@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 	
-	  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="extra_gazebo_args" default=""/>
@@ -14,7 +14,7 @@
   <arg name="verbose" default="false"/>
   <arg name="world_name" value="$(find exp_assignment3)/worlds/$(arg world).world"/>
   <arg name="respawn_gazebo" default="false"/>
-  <arg name="use_clock_frequency" default="false"/>   <!-- HO MODIFICATO QUESTA (da False -> True)-->
+  <arg name="use_clock_frequency" default="false"/>   
   <arg name="pub_clock_frequency" default="100"/>
 
   <!-- set use_sim_time flag -->
@@ -68,17 +68,22 @@
    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" /> 
 <node name="rviz" pkg="rviz" type="rviz" args="-d $(find exp_assignment3)/Config/sim.rviz" />
   
-  <!-- Start nodes --> 
-<!-- <node name="client_move_base" pkg="exp_assignment3" type="client_move_base.py" output="screen" /> -->
-  <node name="state_machine" pkg="exp_assignment3" type="state_machine.py" output="screen" />
+<!-- Start nodes --> 
+<node name="human_command" pkg="exp_assignment3" type="human_command.py" output="screen" /> -->
+<node name="state_machine" pkg="exp_assignment3" type="state_machine.py" output="screen" /> 
+
+<!-- Parameters  --> 
+<param name="/user_command" value="no_play"/>
+
+<!-- Parameters  --> 
+<param name="arrived_human" value="0"/>
 
 <!-- Gmapping Parameters - Launch Gmapping -->
-
-  <param name="use_sim_time" value="true"/>
+	<param name="use_sim_time" value="true"/>
     <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
       <param name="base_frame" value="link_chassis"/>
       <param name="map_update_interval" value="5.0"/>
-      <param name="maxUrange" value="16.0"/>
+      <param name="maxUrange" value="10.0"/>
       <param name="sigma" value="0.05"/>
       <param name="kernelSize" value="1"/>
       <param name="lstep" value="0.05"/>
@@ -92,23 +97,26 @@
       <param name="str" value="0.1"/>
       <param name="stt" value="0.2"/>
       <param name="linearUpdate" value="1.0"/>
-      <param name="angularUpdate" value="0.5"/>
-      <param name="temporalUpdate" value="3.0"/>
+      <param name="angularUpdate" value="0.2"/>
+      <param name="temporalUpdate" value="0.5"/>
       <param name="resampleThreshold" value="0.5"/>
-      <param name="particles" value="30"/>
-      <param name="xmin" value="-50.0"/>
-      <param name="ymin" value="-50.0"/>
-      <param name="xmax" value="50.0"/>
-      <param name="ymax" value="50.0"/>
+      <param name="particles" value="100"/>
+      <param name="xmin" value="-10.0"/>
+      <param name="ymin" value="-10.0"/>
+      <param name="xmax" value="10.0"/>
+      <param name="ymax" value="10.0"/>
       <param name="delta" value="0.05"/>
       <param name="llsamplerange" value="0.01"/>
       <param name="llsamplestep" value="0.01"/>
       <param name="lasamplerange" value="0.005"/>
       <param name="lasamplestep" value="0.005"/>
+      <param name="transform_publish_period" value="0.0005"/>
     </node>
 
+
+
     <!--Launch Move Base package --> 
-    <include file="$(find exp_assignment3)/launch/move_base.launch"> 
+    <include file="$(find planning)/launch/move_base.launch"> 
     </include>
 
 </launch>

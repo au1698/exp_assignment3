@@ -38,10 +38,11 @@ from gazebo_msgs.msg import LinkState
 from tf import transformations
 from std_msgs.msg import String, Float64
 
-from exp_assignment3.msg import PlanningAction, PlanningGoal
 
 # Imports file .action ed and messages used by move base action
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+
+# Global variables
 
 global see_ball_green, see_ball_red, see_ball_black, see_ball_yellow, see_ball_blue, see_ball_magenta
 
@@ -49,12 +50,15 @@ global reach_green_ball, reach_red_ball, reach_black_ball, reach_yellow_ball, re
 
 global FLAG_BLU, FLAG_MAGENTA, FLAG_BLACK, FLAG_YELLOW, FLAG_GREEN, FLAG_RED
 
-FLAG_BLU = 1  #FLAG
+FLAG_BLU = 1 
 FLAG_BLACK =1 
 FLAG_GREEN =1
 FLAG_MAGENTA =1
 FLAG_RED = 1
 FLAG_YELLOW = 1
+
+
+# Variables inizialization 
 
 reach_green_ball = False
 reach_black_ball = False
@@ -70,133 +74,145 @@ see_ball_yellow = False
 see_ball_blue = False
 see_ball_magenta = False
 
-# initialization for rooms
+
 location = [['LivingRoom', 'black', 0, 0], ['Kitchen', 'magenta', 0, 0], ['Closet', 'yellow', 0, 0], [
     'Entrance', 'blue', 0, 0], ['Bathroom', 'red', 0, 0], ['Bedroom', 'green', 0, 0]]
 
 VERBOSE = False
+
 # FUNCTIONS
 
 #  Move-Base client that lets the robot go home avoiding obstacles
 
-
-def Go_home():
-
-    # Crea un action client chiamato "move_base" con action definition file "MoveBaseAction"
-    client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-
-   # Aspetta che l'action si sia avviato ed abbia iniziato ad essere ricettivo per i goal
-    client.wait_for_server()
-
-   # Crea un nuovo goal con il costruttore MoveBaseGoal
-    goal = MoveBaseGoal()
-    goal.target_pose.header.frame_id = "map"
-    goal.target_pose.header.stamp = rospy.Time.now()
-   # Muovere di 0.5 metri avanti lungo l'asse x del sistema di riferimento della mappa
-    goal.target_pose.pose.position.x = 0.0
-    goal.target_pose.pose.position.y = 0.0
-    goal.target_pose.pose.orientation.w = 1.0
-
-   # Invia il goal all'action server.
-    client.send_goal(goal)
-   # Aspetta che il server finisca di eseguire la richiesta
-    wait = client.wait_for_result()
-   # Se il risultato non arriva, assumiamo che il Server non sia disponibile
-    if not wait:
-        rospy.logerr("Action server not available!")
-        rospy.signal_shutdown("Action server not available!")
-    else:
-        # Restituisce il risultato dell'esecuzione dell'action
-        return client.get_result()
-
 #  Move-Base client that lets the robot move normal
 
-
 global result
+global ret 
+ret = String()
+global arrived 
 
+# Functions 
+
+
+# It takes as input x,y position and performs and action client to let the robot move towards the target with obstacle avoidance.
+# It also subscribes to the topic /human_command. If the message is = "play" it cancels the goal and switches to the PLAY state. 
+
+# This function is used in the SLEEP state (x=0, y=0) and NORMAL state with random x,y. 
 
 def Move_normal(target_x, target_y):
-    global result, FLAG_BLACK, FLAG_BLU ,FLAG_GREEN, FLAG_MAGENTA, FLAG_RED, FLAG_YELLOW
     global see_ball_black, see_ball_blue, see_ball_green, see_ball_magenta, see_ball_red, see_ball_yellow
     global robot_position 
+    global user_command 
+    global ret 
+
+    user_command = rospy.Subscriber("human_command", String, callback_user)
+     
+    rospy.loginfo("MOVE NORMAL")
 
     robot_position_x = robot_position.x
     robot_position_y = robot_position.y
-
-    # target_x = np.random.randint(1, 8)
-    # target_y = np.random.randint(1, 8)
     
-    # Crea un action client chiamato "move_base" con action definition file "MoveBaseAction"
+    # Create an action client  called "move_base" with action definition file "MoveBaseAction"
     client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         
     client.wait_for_server()
 
-        # Crea un nuovo goal con il costruttore MoveBaseGoal
+    # Create a new goal through the costructor MoveBaseGoal
     goal = MoveBaseGoal()
     goal.target_pose.header.frame_id = "map"
     goal.target_pose.header.stamp = rospy.Time.now()
 
     goal.target_pose.pose.position.x = target_x
-    goal.target_pose.pose.position.y = target_y 
+    goal.target_pose.pose.position.y = target_y
     goal.target_pose.pose.orientation.w = 1.0
 
-        # Sends the goal to the action server.
+    # Sends the goal to the action server.
     client.send_goal(goal)
     print(goal)
-        # subscribe to the human node
-    user_command = rospy.Subscriber("/user_command", String, callback_user)
-    if (see_ball_blue == True):
-        print(see_ball_blue)
-        client.cancel_goal() 
-        rospy.loginfo("goal canceled")
-        print(goal)
- 
-    """ while True:
-        if (see_ball_black == True and FLAG_BLACK == 1):
-            return client.cancel_goal() 
-        if (see_ball_green == True and FLAG_GREEN == 1):
-             return client.cancel_goal()     
-        if (see_ball_red == True and FLAG_RED == 1):
-            return client.cancel_goal()   
-        if (see_ball_yellow == True and FLAG_YELLOW == 1):
-            return client.cancel_goal()      
-        if (see_ball_magenta == True and FLAG_MAGENTA == 1):
-            return client.cancel_goal()     
-        if (see_ball_blue == True and FLAG_BLU== 1):
-            return client.cancel_goal()            
+    
+    if(user_command == "play"):
+        rospy.loginfo("GOAL CANCELED")
+        ret = "play"
+        return client.cancel_goal()     
 
-        if (user_command == 'play'):
-                    # CANCEL
-            print("GOAL CANCELLATO") 
-
-            return client.cancel_goal() """
-
-    rospy.loginfo("Sono nel Move Base")
-    # guarda in giro se ci sono palle
-    # subscribe_camera = rospy.Subscriber("robot/camera1/image_raw/compressed", CompressedImage, callback_camera,  queue_size=1)
+    # If I see the ball, cancel the goal 
+    if (see_ball_blue == True):          
+        rospy.loginfo("GOAL CANCELED")
+        return client.cancel_goal()
+    if (see_ball_green == True): 
+        rospy.loginfo("GOAL CANCELED")
+    if (see_ball_black == True): 
+        rospy.loginfo("GOAL CANCELED")
+        return client.cancel_goal()
+    if (see_ball_red == True): 
+        rospy.loginfo("GOAL CANCELED")
+        return client.cancel_goal()
+    if (see_ball_yellow == True): 
+        rospy.loginfo("GOAL CANCELED")
+        return client.cancel_goal()
+    if (see_ball_magenta == True): 
+        rospy.loginfo("GOAL CANCELED")
+        return client.cancel_goal() 
 
     # Waits for the server to finish performing the action.
     wait = client.wait_for_result()
 
-        # Se il risultato non arriva, assumiamo che il Server non sia disponibile
+    # If no result, the server is not available
     if not wait:
         rospy.logerr("Action server not available!")
         rospy.signal_shutdown("Action server not available!")
     else:
-            # Restituisce il risultato dell'esecuzione dell'action
-        return client.get_result()
+    # Result of executing the action
+        return client.get_result()   
 
-# PUBLISHERS
-vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
 
-# Track the ball function
-# inputs: centroid radius,x,y,center,image_np - IT'S CALLED BY THE CALLBACK_CAMERA
+# It takes as input x,y position and performs and action client to let the robot move towards the location of the person with obstacle avoidance.
+# This function is used in the PLAY state (x=-5, y=8)
 
+def Move_Play(targ_x, targ_y):
+
+    global robot_position 
+    global user_command 
+
+    rospy.loginfo("MOVE PLAY")
+
+    robot_position_x = robot_position.x
+    robot_position_y = robot_position.y
+    
+    client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        
+    client.wait_for_server()
+
+    # Create a new goal 
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.stamp = rospy.Time.now()
+
+    goal.target_pose.pose.position.x = targ_x
+    goal.target_pose.pose.position.y = targ_y
+    goal.target_pose.pose.orientation.w = 1.0
+
+    # Sends the goal to the action server.
+    client.send_goal(goal)
+    print(goal)
+  
+    # Waits for the server to finish performing the action.
+    wait = client.wait_for_result()
+
+    if not wait:
+        rospy.logerr("Action server not available!")
+        rospy.signal_shutdown("Action server not available!")
+    else:
+    # Result of executing the action
+        return client.get_result()   
+
+# This function Tracks the ball and it's called in the NORAMAL state. When the robot reaches the ball, it saves in a python list its location and the 
+# colour of the ball. 
+# It has as inputs: centroid radius, x, y, center, image_np which are given by the callback of the camera and are used to track the ball.  
 
 def Track_ball(radius, x, y, image_np, center, colour):
     global reach_blue_ball,reach_black_ball,reach_green_ball,reach_magenta_ball,reach_red_ball,reach_yellow_ball
     global see_ball_black, see_ball_blue, see_ball_green, see_ball_magenta, see_ball_red, see_ball_yellow
-    #global FLAG_BLACK,FLAG_BLU,FLAG_GREEN,FLAG_MAGENTA,FLAG_RED,FLAG_YELLOW
     
     if radius > 10 and radius < 80:
         # draw the circle and centroid on the frame,
@@ -204,10 +220,13 @@ def Track_ball(radius, x, y, image_np, center, colour):
         cv2.circle(image_np, (int(x), int(y)), int(radius),
                    (0, 255, 255), 2)
         cv2.circle(image_np, center, 5, (0, 0, 255), -1)
-        vel = Twist()   # create object velocity of type "TWIST"
+
+        # Create an object of type Twist
+        vel = Twist()   
         vel.angular.z = -0.002*(center[0]-400)  # set the angular velocity
-        vel.linear.x = -0.01*(radius-100)      # set the linear velocity
+        vel.linear.x = -0.01*(radius-100)       # set the linear velocity
         print(radius, center[0])
+
         # publish the velocity on the topic /cmd
         vel_pub.publish(vel)
         rospy.loginfo('ENTER IN TRACK MODE ')
@@ -222,47 +241,55 @@ def Track_ball(radius, x, y, image_np, center, colour):
         vel.linear.x = 0 
         vel_pub.publish(vel)
 
-        rospy.loginfo('ARRIVATO A DESTINAZIONE')
-    #time.sleep(7)
+        rospy.loginfo('ARRIVED TO DESTINATION')
+        
         if (colour == "green"):
             reach_green_ball = True
             # save robot position and the color
             location[5][2] = robot_position.x
             location[5][3] = robot_position.y
-            FLAG_GREEN = 0
+            see_ball_green == False 
         elif (colour == "blue"):
             reach_blue_ball = True
             rospy.loginfo("COLORE BLU")
             location[3][2] = robot_position.x
             location[3][3] = robot_position.y
             see_ball_blue = False
-            FLAG_BLU = 0
         elif (colour == "red"):
             reach_red_ball = True
             location[4][2] = robot_position.x
             location[4][3] = robot_position.y
+            see_ball_red == False
         elif (colour == "black"):
             reach_black_ball = True
             location[0][2] = robot_position.x
             location[0][3] = robot_position.y
+            see_ball_black == False
         elif (colour == "yellow"):
             reach_yellow_ball = True
             location[2][2] = robot_position.x
             location[2][3] = robot_position.y
+            see_ball_yellow == False
         elif (colour == "magenta"):
             reach_magenta_ball = True
             location[1][2] = robot_position.x
             location[1][3] = robot_position.y
+            see_ball_magenta == False
 
         rospy.loginfo('stored position')
         return 
 
 # CALLBACK- FUNCTIONS
 
-# THIS FUNCTION DETECTS ALL THE BALLS
 
-    radius = 0
-    center = None
+
+ radius = 0
+ center = None
+
+
+# PUBLISHERS
+vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)   
+
 
 def callback_camera(ros_data):
     global see_ball_black,see_ball_blue,see_ball_green,see_ball_magenta,see_ball_red,see_ball_yellow
@@ -418,7 +445,6 @@ def callback_camera(ros_data):
 
         if (see_ball_blue == True and reach_blue_ball == False):   # se non ha ancora raggiunto la ball
             # fa il track della palla
-            rospy.logerr("ENTRO NEL TRACK")
             Track_ball(radius, x, y, image_np, center, "blue")      
     
 
@@ -439,16 +465,20 @@ def callback_camera(ros_data):
     cv2.waitKey(2)
     #return
 
-
 user_command = String()
 
+# Callback for the topic /human_command used to interacts with the user (script: 'human_command.py')
 
 def callback_user(msg):
-    rospy.loginfo('RECEIVED PLAY COMMAND ')
+    global user_command
     user_command = msg.data
-    # THIS FUNCTION IS CALLED WHEN THE ROBOT SUBSCRIBE TO THE ODOMETRY TOPIC
+    #rospy.loginfo(" %s",msg.data)
+
+    return user_command
 
 robot_position = Point()
+
+# Callback for the topic /odom used to retrieve robot's position over time
 
 def callback_odom(data):
 
@@ -456,16 +486,12 @@ def callback_odom(data):
     robot_position.x = data.pose.pose.position.x
     robot_position.y = data.pose.pose.position.y 
     # print(robot_position_x)
-    # send robot's position to the human node
-    
+       
+
+# STATE MACHINE
 
 
-"""
-def callback_location(data)
-     print("robot position ia arrived as msg to the robot") """
-
-
-# SLEEP STATE -STATE MACHINE
+# SLEEP state
 
 class Sleep(smach.State):
     # Constructor of the class Sleep
@@ -478,21 +504,22 @@ class Sleep(smach.State):
 
     def execute(self, userdata):
 
-        # rospy.loginfo('Executing state SLEEP') REMEBER TO UNCOMMENT THIS PART PLEASEE
-        # userdata.sleep_counter_out = userdata.sleep_counter_in + 1
-
-        # result = Go_home()
-        #       if result:
-        #       rospy.loginfo('robot arrived at home')
-        # time.sleep(10)    # it stays for some time
-
+        rospy.loginfo('Executing state SLEEP')
+        x = 0.0 
+        y = 0.0   
+        result = Move_normal(x,y)
+        if result:
+             rospy.loginfo('robot arrived at home')
+             time.sleep(10)    # it stays for some time
+ 
         # Change state: from 'SLEEP' to 'NORMAL'
         return 'wake_up'
 
-# Define state Normal
-
+# NORMAL state
 
 class Normal(smach.State):
+    global user_command,ret 
+    user_command = String()
     # Constructor of the class Normal
     def __init__(self):
         # Initialization function
@@ -505,7 +532,6 @@ class Normal(smach.State):
         time.sleep(5)
         rospy.loginfo('Executing state NORMAL')
 
-        # FARE CICLO WHILE
         while True:
             subscribe_camera = rospy.Subscriber(
                 "/camera1/image_raw/compressed", CompressedImage, callback_camera,  queue_size=1)
@@ -514,22 +540,22 @@ class Normal(smach.State):
             y = random.randrange(-5,3)
             print(x,y)
             Move_normal(x, y)  # the robot moves randomly
-        # Subscribe to camera topic and execute the callbacl_camera function
-           
-        # break
-        # FACCIO IL CHECK PER VEDERE SE L'USER HA DETTO DI GIOCARE
-        # user_command = rospy.get_param('/user_command')
-            if (user_command == 'play'):  # global variable from MOVE NORMAL
-                return 'go_to_play'    # NON VA A PLAY FINCHè NON LO DIC EL'USER
+            # Check if user said 'PLAY' subscribing to the topic /human_command
+          
+            user_command = user_command.data = rospy.Subscriber("human_command", String, callback_user)
+            rospy.loginfo(" %s",user_command)
 
-            # Define state Play
+             # ret is a global variable from MoveNormal(), in this way if the user says PLAY while the robot is moving towards a random location 
+             # it immediately switches to PLAY state. 
 
+            if (user_command == "play" or ret == "play"): 
+                rospy.loginfo(" USER COMMAND PLAY")
+                return 'go_to_play'    
+
+# PLAY state 
 
 class Play(smach.State):
-    time.sleep(5)
-    global move_head
     # Constructor of the class Play
-
     def __init__(self):
         # Initialization function
         smach.State.__init__(self,
@@ -538,63 +564,82 @@ class Play(smach.State):
                              output_keys=['play_counter_out'])
 
     def execute(self, userdata):
+        pos_x = 0
+        pos_y = 0
+        global arrived 
+        global user_command
+        robot_say = String()
         rospy.loginfo('Executing state PLAY')
-        user_command = rospy.get_param('/user_command')
-        if (user_command == 'play'):
-            arrived = Move_normal(-5, 8)
-            if (arrived):
-                # publish to the human
-                pub = rospy.Publisher('/arrived_human', String, queue_size=10)
-                msg = "arrived"
-                pub(msg)
-                go_to_command = rospy.Subscriber(
-                    "/user_command", String, callback_robot,  queue_size=1)
-                if (go_to_command == "living_room"):
-                    if (reach_black_ball == True):
-                        pos_x = location[0][2]
-                        pos_y = location[0][3]
+        #user_command = rospy.Subscriber("human_command", String, callback_user)
+
+        # move the robot towards the user location
+        arrived = Move_Play(-5, 8) 
+        rospy.loginfo("Arrived to the HUMAN")
+        for i in location:
+            print(i)
+        if (arrived):
+                
+            robot_say = "arrived"
+            pub_arrived = rospy.Publisher('human_command', String, queue_size=10) 
+
+            # publish to the topic /human_command "arrived"
+            pub_arrived.publish(robot_say)
+
+            # It subscribes to the topic /human_command to listen to the location 
+            go_to_command = rospy.Subscriber("/human_command", String, callback_user,  queue_size=1)
+
+            if (go_to_command == "living_room"):
+                if (reach_black_ball == True):
+                    pos_x = location[0][2]
+                    pos_y = location[0][3]
+                    print(pos_x,pos_y)
+
+            if (go_to_command == "kitchen"):
+                if (reach_magenta_ball == True):
+                    pos_x = location[1][2]
+                    pos_y = location[1][3] 
+                    print(pos_x,pos_y)
                 else:
                     return 'find'
-
-                if (go_to_command == "kitchen"):
-                    if (reach_magenta_ball == True):
-                        pos_x = location[1][2]
-                        pos_y = location[1][3]
-                    else:
-                        return 'find'
-                if (go_to_command == "closet"):
-                    if (reach_yellow_ball == True):
-                        pos_x = location[2][2]
-                        pos_y = location[2][3]
-                    else:
-                        return 'find'
-                if (go_to_command == "entrance"):
-                    if (reach_blue_ball == True):
-                        pos_x = location[3][2]
-                        pos_y = location[3][3]
-                    else:
-                        return 'find'
-                if (go_to_command == "bathroom"):
-                    if (reach_red_ball == True):
-                        pos_x = location[4][2]
-                        pos_y = location[4][3]
-                    else:
-                        return 'find'
-                if (go_to_command == "bedroom"):
-                    if (reach_green_ball == True):
-                        pos_x = location[5][2]
-                        pos_y = location[5][3]
-                    else:
-                        return 'find'
-
-                Move_normal(pos_x, pos_y)
-
-            time.sleep(5)
+            if (go_to_command == "closet"):
+                if (reach_yellow_ball == True):
+                    pos_x = location[2][2]
+                    pos_y = location[2][3]
+                    print(pos_x,pos_y)
+                else:
+                    return 'find'
+            if (go_to_command == "entrance"):
+                if (reach_blue_ball == True):
+                    pos_x = location[3][2]
+                    pos_y = location[3][3]
+                    print(pos_x,pos_y)
+                else:
+                    return 'find'
+            if (go_to_command == "bathroom"):
+                if (reach_red_ball == True):
+                    pos_x = location[4][2]
+                    pos_y = location[4][3]
+                    print(pos_x,pos_y)
+                else:
+                    return 'find'
+            if (go_to_command == "bedroom"):
+                if (reach_green_ball == True):
+                    pos_x = location[5][2]
+                    pos_y = location[5][3]
+                    print(pos_x,pos_y)
+                else:
+                    return 'find' 
+    
+        # Call MovePlay to let the robot reach the given location                
+        Move_Play(pos_x, pos_y)
+        time.sleep(90)
+    
 
     # Change state randomly: from 'PLAY' to 'NORMAL'
         return random.choice(['go_to_normal', 'find'])
 
 
+# FIND state: not implemented :( 
 class Find (smach.State):
     # Constructor of the class Sleep
     def __init__(self):
@@ -606,13 +651,8 @@ class Find (smach.State):
 
     def execute(self, userdata):
 
-        # rospy.loginfo('Executing state SLEEP') REMEBER TO UNCOMMENT THIS PART PLEASEE
-        # userdata.sleep_counter_out = userdata.sleep_counter_in + 1
-
-        # result = Go_home()
-        #       if result:
-        #       rospy.loginfo('robot arrived at home')
-        # time.sleep(10)    # it stays for some time
+        rospy.loginfo('Executing state FIND')
+        
 
         # Change state: from 'SLEEP' to 'NORMAL'
         return 'go_to_play'
@@ -622,6 +662,7 @@ def main():
     # Inizialize ros node ''state_machine'
     rospy.init_node('state_machine')
     rospy.Subscriber("odom", Odometry, callback_odom)
+    user_command = user_command.data = rospy.Subscriber("human_command", String, callback_user)
 
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['container_interface'])
@@ -651,7 +692,6 @@ def main():
     # Wait for ctrl-c to stop the application
     rospy.spin()
     sis.stop()
-
 
 if __name__ == '__main__':
     main()
