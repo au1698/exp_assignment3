@@ -4,8 +4,6 @@
 The robot moves in an environment divided into 6 rooms and in each of them there is a ball of a different colour. The robot implements four behaviors: sleep, normal, play and find. The human can interact by sending a Play command to the robot, followed by a GoTocommand + target location (Entrance,Closet, Living room, Kitchen, Bathroom, Bedroom). 
 The robot simulates a dog that moves on two wheels with differential drive control. It perceives has the perception of the environment through a hokuyo laser sensor and a RGBD camera. 
 
--
-- explore_lite for autonomous exploration of the environment
 
 ## Ros Architecture of the System 
 
