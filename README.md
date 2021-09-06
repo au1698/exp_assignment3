@@ -12,7 +12,11 @@ The robot simulates a dog that moves on two wheels with differential drive contr
 ## Ros Architecture of the System 
 
 ## human_command 
-This node simulates user's commands like "PLAY"  and "GO TO TARGET", where target are the rooms of the house such as 'kitchen', 'bathroom', 'closet', 'bedroom', 'living_room', 'entrance'. 
+This node simulates user's commands like "PLAY"  and "GO TO TARGET", where target are the rooms of the house such as 'kitchen', 'bathroom', 'closet', 'bedroom', 'living_room', 'entrance'. The command PLAY is published every 2 minutes (it's possible to set this value) on the topic /human_command. 
+This node also subscribes on the topic /human_command and when the message is "arrived" means that the robot has reached the person, and is ready to 
+listen to the user's command GO TO "LOCATION".
+At this point, in the PLAY state of the state machine, if the location is known, the robot moves to the target avoiding obstacles otherwise
+it enters in the FIND state. 
 
 ## state_machine
 This node is a finite state machine made of three states: PLAY, SLEEP, NORMAL,PLAY,FIND.
