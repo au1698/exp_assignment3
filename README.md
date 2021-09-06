@@ -22,14 +22,14 @@ In this project the ROS Melodic is used and scripts are written in Python 2.7.
                                                                                                                    
 ## Ros Architecture of the System 
 
-## human_command 
+## human_command.py 
 This node simulates user's commands like "PLAY"  and "GO TO TARGET", where target are the rooms of the house such as 'kitchen', 'bathroom', 'closet', 'bedroom', 'living_room', 'entrance'. The command PLAY is published every 2 minutes (it's possible to set this value) on the topic /human_command. 
 This node also subscribes on the topic /human_command and when the message is "arrived" means that the robot has reached the person, and is ready to 
 listen to the user's command GO TO "LOCATION".
 At this point, in the PLAY state of the state machine, if the location is known, the robot moves to the target avoiding obstacles otherwise
 it enters in the FIND state. 
 
-## state_machine
+## state_machine.py
 This node is a finite state machine made of three states: PLAY, SLEEP, NORMAL,PLAY,FIND.
 
 SLEEP: The robot reaches a predefined location in the house, it stays there for some times, and when it switches in the Normal behavior. To implement this behavior, I created a function MoveNormal() that takes as input x,y coordinates and creates an action client to let the robot move to the target. In this case, the target is x=0 and y=0. Moreover, if the human gives the command PLAY, the request to the server is canceled. 
