@@ -2,13 +2,24 @@
 
 ## Behavioral Architecture 
 The robot moves in an environment divided into 6 rooms and in each of them there is a ball of a different colour. The robot implements four behaviors: sleep, normal, play and find. The human can interact by sending a Play command to the robot, followed by a GoTocommand + target location (Entrance,Closet, Living room, Kitchen, Bathroom, Bedroom). 
-The robot simulates a dog that moves on two wheels with differential drive control. It perceives has the perception of the environment through a hokuyo laser sensor and a RGBD camera.
+The robot simulates a dog that moves on two wheels with differential drive control. It perceives has the perception of the environment through a hokuyo laser sensor and a RGBD camera. 
+In this project the ROS Melodic is used and scripts are written in Python 2.7. 
+
 
 <p align="center"> 
-<img src=https://github.com/au1698/exp_assignment3/blob/main/exp_assignment3/Images/environment).png raw=true">
+<img src=https://github.com/au1698/exp_assignment3/blob/main/exp_assignment3/Images/environment.png raw=true">
 </p> 
-                                                                                                                   
+                                                                                                             
+ Each colour is associated to a different room:
 
+- Blue: Entrance 
+- Red: Closet 
+- Green: Living room 
+- Yellow: Kitchen 
+- Orange: Bathroom 
+- Black: Bedroom
+                                                                                                            
+                                                                                                                   
 ## Ros Architecture of the System 
 
 ## human_command 
