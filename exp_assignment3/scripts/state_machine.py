@@ -206,7 +206,7 @@ def Move_Play(targ_x, targ_y):
     # Result of executing the action
         return client.get_result()   
 
-# This function Tracks the ball and it's called in the NORAMAL state. When the robot reaches the ball, it saves in a python list its location and the 
+# This function Tracks the ball and it's called in the NORMAL state. When the robot reaches the ball, it saves in a python list its location and the 
 # colour of the ball. 
 # It has as inputs: centroid radius, x, y, center, image_np which are given by the callback of the camera and are used to track the ball.  
 
