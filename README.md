@@ -5,7 +5,7 @@ The robot moves in an environment divided into 6 rooms and in each of them there
 The robot simulates a dog that moves on two wheels with differential drive control. It perceives has the perception of the environment through a hokuyo laser sensor and a RGBD camera.
 
 p align="center"> 
-<img src=https://github.com/au1698/exp_assignment3/tree/main/exp_assignment3/Images/Screenshot (24).png raw=true">
+<img src=https://github.com/au1698/exp_assignment3/blob/main/exp_assignment3/Images/Screenshot%20(24).png raw=true">
 </p>
 
 
